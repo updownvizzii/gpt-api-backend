@@ -1,99 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>GPT-4o Chat + DALL·E Image Bot</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miru 😏 — GPT + Image</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
-    input, button { padding: 10px; margin-top: 5px; width: 80%; border: none; border-radius: 5px; }
-    button { background: #333; color: white; cursor: pointer; }
-    #chatBox, #imageResult {
-      border: 1px solid #444; padding: 10px; max-height: 300px;
-      overflow-y: auto; margin-bottom: 10px;
+    body {
+      background: radial-gradient(circle at top left, #1a1a1a, #000);
+      font-family: 'Segoe UI', sans-serif;
     }
-    .user { color: lightgreen; margin-bottom: 4px; }
-    .bot { color: skyblue; margin-bottom: 4px; }
+    input, button {
+      outline: none;
+    }
+    ::selection {
+      background-color: #9333ea;
+      color: white;
+    }
   </style>
 </head>
-<body>
+<body class="text-white min-h-screen flex flex-col items-center py-10 px-4">
 
-<h2>🧠 GPT-4o Chat + 🎨 Image Generator</h2>
+  <h1 class="text-4xl sm:text-5xl font-extrabold text-center mb-2">Miru 😏</h1>
+  <p class="text-lg text-gray-400 mb-10 text-center max-w-xl">Your personal DALL·E assistant. Ask. Imagine. Download. Eat and sleep properly. </p>
 
-<div id="chatBox"></div>
-<input id="userInput" placeholder="Say something..." />
-<button onclick="sendMessage()">Send</button>
+  <!-- 🔤 Chat Input -->
+  <div class="flex flex-col sm:flex-row gap-4 w-full max-w-2xl">
+    <input id="chatInput"
+           class="flex-grow px-4 py-3 rounded-xl text-black text-base"
+           placeholder="Ask Miru anything..." />
+    <button onclick="sendMessage()"
+            class="bg-purple-600 hover:bg-purple-700 transition px-5 py-3 rounded-xl text-white font-semibold">
+      ✨ Chat
+    </button>
+  </div>
 
-<br><br>
+  <!-- 🎨 Image Prompt -->
+  <div class="flex flex-col sm:flex-row gap-4 w-full max-w-2xl mt-6">
+    <input id="imagePrompt"
+           class="flex-grow px-4 py-3 rounded-xl text-black text-base"
+           placeholder="Generate an image... (e.g. 'portrait of cyberpunk cat')" />
+    <button onclick="generateImage()"
+            class="bg-indigo-600 hover:bg-indigo-700 transition px-5 py-3 rounded-xl text-white font-semibold">
+      🧠 Generate
+    </button>
+  </div>
 
-<input id="imagePrompt" placeholder="Describe an image..." />
-<button onclick="generateImage()">Generate Image</button>
-<div id="imageResult"></div>
+  <!-- 💬 Response Text -->
+  <div id="responseContainer"
+       class="w-full max-w-3xl mt-8 text-center text-gray-300 text-lg min-h-[2rem] transition-all duration-300 ease-in-out px-2 sm:px-0">
+  </div>
 
-<script>
-  const chatEndpoint = "/api/chat";
-  const imageEndpoint = "/api/image";
+  <!-- 🖼️ Image Grid -->
+  <div id="imageGrid"
+       class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl px-2 sm:px-0">
+  </div>
 
-  let messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
-  let imageGenCount = parseInt(localStorage.getItem("imageGenCount") || "0");
-  const imageGenLimit = 3;
-
-  messages.forEach(msg => updateChat(msg.role, msg.content));
-
-  async function sendMessage() {
-    const input = document.getElementById("userInput").value.trim();
-    if (!input) return;
-
-    messages.push({ role: "user", content: input });
-    updateChat("user", input);
-    document.getElementById("userInput").value = "";
-
-    const res = await fetch(chatEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages })
-    });
-
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
-    messages.push({ role: "assistant", content: reply });
-    updateChat("bot", reply);
-    localStorage.setItem("chatMessages", JSON.stringify(messages));
-  }
-
-  function updateChat(role, text) {
-    const div = document.createElement("div");
-    div.className = role;
-    div.innerText = (role === "user" ? "You: " : "GPT: ") + text;
-    document.getElementById("chatBox").appendChild(div);
-    document.getElementById("chatBox").scrollTop = 9999;
-  }
-
-  async function generateImage() {
-    const prompt = document.getElementById("imagePrompt").value.trim();
-    if (!prompt) return;
-
-    if (imageGenCount >= imageGenLimit) {
-      alert("Image generation limit reached for this session (3).");
-      return;
-    }
-
-    const res = await fetch(imageEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: prompt })
-    });
-
-    const data = await res.json();
-    const url = data.data[0].url;
-
-    document.getElementById("imageResult").innerHTML += `<img src="${url}" width="300" style="margin:10px;" />`;
-
-    imageGenCount += 1;
-    localStorage.setItem("imageGenCount", imageGenCount.toString());
-  }
-</script>
-
-<div id="image-output" style="margin-top: 10px;"></div>
-
-
+  <!-- 📜 Script -->
+  <script src="/script.js"></script>
 </body>
 </html>
