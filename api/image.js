@@ -1,19 +1,35 @@
+// /api/image.js
+
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: "Prompt is required" });
+  }
 
-  const response = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024"
-    })
-  });
+  try {
+    const apiRes = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt,
+        n: 3, // generate 3 images per request
+      }),
+    });
 
-  const data = await response.json();
-  res.status(200).json(data);
+    const data = await apiRes.json();
+    const urls = data.data?.map((img) => img.url) || [];
+
+    res.status(200).json({ images: urls });
+  } catch (error) {
+    console.error("Image generation error:", error);
+    res.status(500).json({ error: "Failed to generate images" });
+  }
 }
