@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GPT-4o Chat + DALL·E Image Bot</title>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+    input, button { padding: 10px; margin-top: 5px; width: 80%; border: none; border-radius: 5px; }
+    button { background: #333; color: white; cursor: pointer; }
+    #chatBox, #imageResult {
+      border: 1px solid #444; padding: 10px; max-height: 300px;
+      overflow-y: auto; margin-bottom: 10px;
+    }
+    .user { color: lightgreen; margin-bottom: 4px; }
+    .bot { color: skyblue; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+
+<h2>🧠 GPT-4o Chat + 🎨 Image Generator</h2>
+
+<div id="chatBox"></div>
+<input id="userInput" placeholder="Say something..." />
+<button onclick="sendMessage()">Send</button>
+
+<br><br>
+
+<input id="imagePrompt" placeholder="Describe an image..." />
+<button onclick="generateImage()">Generate Image</button>
+<div id="imageResult"></div>
+
+<script>
+  const chatEndpoint = "/api/chat";
+  const imageEndpoint = "/api/image";
+
+  let messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+  let imageGenCount = parseInt(localStorage.getItem("imageGenCount") || "0");
+  const imageGenLimit = 3;
+
+  messages.forEach(msg => updateChat(msg.role, msg.content));
+
+  async function sendMessage() {
+    const input = document.getElementById("userInput").value.trim();
+    if (!input) return;
+
+    messages.push({ role: "user", content: input });
+    updateChat("user", input);
+    document.getElementById("userInput").value = "";
+
+    const res = await fetch(chatEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages })
+    });
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    messages.push({ role: "assistant", content: reply });
+    updateChat("bot", reply);
+    localStorage.setItem("chatMessages", JSON.stringify(messages));
+  }
+
+  function updateChat(role, text) {
+    const div = document.createElement("div");
+    div.className = role;
+    div.innerText = (role === "user" ? "You: " : "GPT: ") + text;
+    document.getElementById("chatBox").appendChild(div);
+    document.getElementById("chatBox").scrollTop = 9999;
+  }
+
+  async function generateImage() {
+    const prompt = document.getElementById("imagePrompt").value.trim();
+    if (!prompt) return;
+
+    if (imageGenCount >= imageGenLimit) {
+      alert("Image generation limit reached for this session (3).");
+      return;
+    }
+
+    const res = await fetch(imageEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: prompt })
+    });
+
+    const data = await res.json();
+    const url = data.data[0].url;
+
+    document.getElementById("imageResult").innerHTML += `<img src="${url}" width="300" style="margin:10px;" />`;
+
+    imageGenCount += 1;
+    localStorage.setItem("imageGenCount", imageGenCount.toString());
+  }
+</script>
+
+</body>
+</html>
