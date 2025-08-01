@@ -1,12 +1,16 @@
 {
-    "version": 2,
+  "version": 2,
   "builds": [
     { "src": "api/**/*.js", "use": "@vercel/node" },
     { "src": "*.html",      "use": "@vercel/static" },
-    { "src": "*.js",        "use": "@vercel/static" }
+    { "src": "images.js",   "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/",          "dest": "/index.html" },
-    { "src": "/(.*)",      "dest": "/$1" }
+    // 1) Let all /api/* go to your function files:
+    { "src": "/api/(.*)", "dest": "/api/$1.js" },
+
+    // 2) Serve index.html for root and any other path (SPA fallback):
+    { "src": "/",         "dest": "/index.html" },
+    { "src": "/(.*)",     "dest": "/index.html" }
   ]
 }
