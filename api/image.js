@@ -1,4 +1,11 @@
 // /api/image.js
+export default async function handler(req, res) {
+  console.log("🔑 OPENAI_API_KEY set?", !!process.env.OPENAI_API_KEY);
+  console.log("👉 Running image handler for prompt:", req.body.prompt);
+
+  // … rest of your existing code …
+}
+
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
