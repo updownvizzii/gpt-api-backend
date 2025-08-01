@@ -29,11 +29,13 @@ export default async function handler(req, res) {
       });
 
       const data = await response.json();
-      console.log(`Response #${i + 1}`, data);
+      console.log(`Response #${i + 1}:`, data);
 
       if (!response.ok) {
         console.error("🚨 OpenAI API error:", data.error);
-        return res.status(response.status).json({ error: data.error || "OpenAI API error" });
+        return res
+          .status(response.status)
+          .json({ error: data.error?.message || "OpenAI API error" });
       }
 
       const url = data.data?.[0]?.url;
@@ -48,6 +50,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ images: imageUrls });
   } catch (error) {
     console.error("🔥 Unexpected error:", error);
-    return res.status(500).json({ error: "Failed to generate images" });
+    return res.status(500).json({ error: error.message || "Failed to generate images" });
   }
 }
