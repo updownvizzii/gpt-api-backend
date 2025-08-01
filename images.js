@@ -1,14 +1,18 @@
 // images.js
-
 console.log("✅ images.js loaded");
 
 async function generateImage() {
-  const prompt = document.getElementById("prompt").value.trim();
-  const output = document.getElementById("output");
+  const promptInput = document.getElementById("prompt");
+  const prompt = promptInput.value.trim();
+  if (!prompt) {
+    alert("Please enter a prompt.");
+    return;
+  }
+
   const loading = document.getElementById("loading");
+  const output  = document.getElementById("output");
 
-  if (!prompt) return;
-
+  // Show loading
   output.innerHTML = "";
   loading.classList.remove("hidden");
 
@@ -20,11 +24,15 @@ async function generateImage() {
     });
 
     const data = await res.json();
+    const images = data.images || [];
 
-    if (data.images && data.images.length > 0) {
-      data.images.forEach((url, index) => {
-        const container = document.createElement("div");
-        container.className = "break-inside-avoid mb-4 rounded-lg overflow-hidden shadow bg-gray-900 relative";
+    if (images.length === 0) {
+      output.innerHTML = "<p class='text-center text-white'>No images returned.</p>";
+    } else {
+      images.forEach((url, index) => {
+        const card = document.createElement("div");
+        card.className =
+          "break-inside-avoid mb-4 rounded-lg overflow-hidden shadow bg-gray-900 relative";
 
         const img = document.createElement("img");
         img.src = url;
@@ -39,16 +47,14 @@ async function generateImage() {
         download.className =
           "absolute bottom-2 right-2 bg-white/90 text-black text-xs px-2 py-1 rounded shadow hover:bg-white font-semibold";
 
-        container.appendChild(img);
-        container.appendChild(download);
-        output.appendChild(container);
+        card.appendChild(img);
+        card.appendChild(download);
+        output.appendChild(card);
       });
-    } else {
-      output.innerHTML = "<p class='text-center text-white'>No images returned.</p>";
     }
   } catch (err) {
-    console.error("Error:", err);
-    output.innerHTML = "<p class='text-center text-red-500'>Something went wrong.</p>";
+    console.error("Error generating images:", err);
+    output.innerHTML = "<p class='text-center text-red-500'>Error generating images.</p>";
   } finally {
     loading.classList.add("hidden");
   }
